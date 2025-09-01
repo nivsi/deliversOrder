@@ -1,20 +1,66 @@
-// src/App.js
-import React from "react";
-import DriverOrder from "./delivers/DriverNearbyOrders.jsx";
+import './App.css';
+import DriverOrder from './components/delivers/DriverNearbyOrders.jsx';
+import AuthTabs from './components/users/AuthTabs';
+import ConfirmRegistration from './components/users/ConfirmRegistration.jsx';
+import ForgotPassword from './components/users/ForgotPassword.jsx';
+import CallbackPage from './CallbackPage';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from 'react-oidc-context';
 
 export default function App() {
-  const getCoordinatesFromAddress = () => {
-    return fetch("https://zukr2k1std.execute-api.us-east-1.amazonaws.com/dev/location?address=beer yaakov, shoham, 14")
-        .then(check => {
-          if (!check.ok) throw new Error("Failed to fetch coordinates");
-          return check.json();
-        });
-  }
+  const auth = useAuth();
+  const location = useLocation();
 
-// קריאה לבדיקה
-  getCoordinatesFromAddress().then(data => console.log(data.latitude, data.longitude));
+  const cached = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('pp_user') || 'null');
+    } catch {
+      return null;
+    }
+  })();
 
-  return <DriverOrder />;
+  const profile = auth.user?.profile ?? {};
+
+  const firstName =
+    profile.given_name ||
+    cached?.given_name ||
+    (profile.name?.split(' ')[0]) ||
+    (cached?.name?.split(' ')[0]) ||
+    '';
+
+  const lastName =
+    profile.family_name ||
+    cached?.family_name ||
+    (profile.name?.split(' ').slice(1).join(' ')) ||
+    (cached?.name?.split(' ').slice(1).join(' ')) ||
+    '';
+
+  console.log("profile:", profile);
+  console.log("cached:", cached);
+  console.log("firstName:", firstName, "lastName:", lastName);
+
+  return (
+    <Routes>
+      <Route path="/" element={<AuthTabs />} />
+      <Route path="/confirm" element={<ConfirmRegistration />} />
+      <Route path="/forgot" element={<ForgotPassword />} />
+      <Route path="/callback" element={<CallbackPage />} />
+
+      <Route
+        path="/driverScreen"
+        element={
+          (auth.user?.profile !== null || cached !== null) ? (
+            <DriverOrder
+              driver_first_name={profile.given_name ?? cached?.given_name ?? ''}
+              driver_last_name={profile.family_name ?? cached?.family_name ?? ''}
+            />
+          ) : (
+            <Navigate to="/?tab=login" replace />
+          )
+        }
+      />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
-
-

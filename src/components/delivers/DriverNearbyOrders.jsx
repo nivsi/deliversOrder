@@ -31,7 +31,7 @@ const buildGmapsUrl = ({ originLat, originLon, destLat, destLng }) => {
     return `${base}${origin}${dest}`;
 };
 
-const DriverOrder = () => {
+const DriverOrder = ({driver_first_name, driver_last_name}) => {
     const [coordinates, setCoordinates] = useState({ lon: 0, lat: 0 });
     const [orders, setOrders] = useState([]);
     const [dailyEarnings, setDailyEarnings] = useState(0);
@@ -39,7 +39,7 @@ const DriverOrder = () => {
     const [orderToDeliver, setOrderToDeliver] = useState(null);
     const [time, setTime] = useState(new Date());
 
-    const deliverName = "John Doe";
+    const deliverName = `${driver_first_name} ${driver_last_name}`;
     const latTelAvivAza25 = 32.0469230;
     const lonTelAvivAza25 = 34.7594460;
 
@@ -130,6 +130,7 @@ const DriverOrder = () => {
 
     return (
         <div>
+            {console.log("Rendering DriverOrder with props:", { driver_first_name, driver_last_name })}
             <header className="driver-header">
                 <h2 className="driver-name-title">Welcome back {deliverName} 👋</h2>
 
